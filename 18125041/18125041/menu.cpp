@@ -30,11 +30,11 @@ int menu(Data &player)
 	gotoXY(29, 56); cout << "6: quit";
 	
 	char tmp=' ';
-	while (!_kbhit())
+	while (tmp<'1' || tmp>'6')
 	{
 		tmp = _getch();
 		_getch();
-		if (tmp >= '1' && tmp <= '6') break;
+		//if (tmp >= '1' && tmp <= '6') break;
 	}
 	return(a[tmp - '0']);
 }

@@ -20,7 +20,7 @@ void instruction();
 
 struct Data
 {
-	bool bg; int m, n;
+	bool bg; int m, n, totalGame1, totalWin1, totalGame2, totalWin2, totalGame3, totalWin3; char playerSymbol, computerSymbol;
 	Data() {}
 };
 

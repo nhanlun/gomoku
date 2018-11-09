@@ -2,6 +2,6 @@
 #ifndef play_h
 #define play_h
 
-void pvp(Data &player,string Filename);
+void game(Data &player, const char s[], int gamemode);
 
 #endif

@@ -1,6 +1,8 @@
 
 #define _WIN32_WINNT 0x0500
 
+//#define DEBUG
+
 #include <Windows.h>
 #include <iostream>
 #include "background.h"
@@ -38,23 +40,39 @@ int Centerv(int m, int n)
 void drawboard(int m, int n)
 {
 	int pos1 = Centerv(m, n), pos2 = Centerh(m, n);
+#ifdef DEBUG
+	int poss1 = pos1, poss2 = pos2;
+	poss1--; poss2-=2;
+	for (int i = 0; i < n; ++i) if (i % 4 == 2) 
+	{
+		gotoXY(poss1, pos2 + i); cout << i / 4;
+	}
+	for (int i = 0; i < m-1; ++i) if (i % 2 == 0)
+	{
+		gotoXY(pos1 + i + 1, poss2); cout << i / 2;
+	}
+	//cout << m << ' ' << n;
+#endif // DEBUG
 	setcolor(7);
-	gotoXY(pos1, pos2); cout << (char)218; for (int i = 1; i <= n - 2; ++i) if (i & 1) cout << (char)196; else cout << (char)194; cout << (char)191;
+	gotoXY(pos1, pos2); cout << (char)201; for (int i = 1; i <= n - 2; ++i) if (i % 4) cout << (char)205; else cout << (char)209; cout << (char)187;
 
 	for (int i = 2; i < m; ++i)
 	{
 		gotoXY(pos1 + i - 1,pos2);
-		if (i % 2 == 0) for (int j = 1; j <= n; ++j) if (j % 2) cout << (char)179; else cout << ' ';
-		if (i % 2)
+		if (i % 2 == 0)
 		{
-			cout << (char)195;
-			for (int j = 2; j < n; ++j) if (j % 2==0) cout << (char)196; else cout << (char)197; cout << (char)180;
+			cout << (char)186;
+			for (int j = 2; j < n; ++j) if (j % 4 == 1) cout << (char)179; else cout << ' ';
+			cout << (char)186;
+		}
+		else
+		{
+			cout << (char)199;
+			for (int j = 1; j < n-1; ++j) if (j % 4) cout << (char)196; else cout << (char)197; 
+			cout << (char)182;
 		}
 	}
-	gotoXY(pos1 + m - 1, pos2); cout << (char)192; for (int i = 1; i <= n - 2; ++i) if (i & 1) cout << (char)196; else cout << (char)193; cout << (char)217;
-	//setcolor(14);
-	//gotoXY(45, 2); cout<<"1: "
-	//gotoXY(pos1 + 1, pos2 + 1);
+	gotoXY(pos1 + m - 1, pos2); cout << (char)200; for (int i = 1; i <= n - 2; ++i) if (i % 4) cout << (char)205; else cout << (char)207; cout << (char)188;
 }
 
 void drawBorder(int x1, int y1, int x2, int y2,int color,int delay)
