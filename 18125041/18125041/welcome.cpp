@@ -6,9 +6,8 @@
 
 using namespace std;
 
-void welcome(Data &player)
+void welcome()
 {
-	if (player.bg) background(1, 45, 135, 11, 32, 33, 101);
 	drawBorder(11, 32, 33, 101, 10, 80);
 
 	gotoXY(14, 40); cout << " -----    -----   |        |   -----   |   /  |     |\n"; Sleep(80);

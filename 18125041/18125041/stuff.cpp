@@ -5,19 +5,19 @@
 
 #include <Windows.h>
 #include <iostream>
-#include "background.h"
 
 using namespace std;
-static HANDLE cursor = GetStdHandle(STD_OUTPUT_HANDLE);
 
 void gotoXY(int x, int y)
 {
 	COORD tmp = { y,x };
+	HANDLE cursor = GetStdHandle(STD_OUTPUT_HANDLE);
 	SetConsoleCursorPosition(cursor, tmp);
 }
 
 void setcolor(int x)
 {
+	HANDLE cursor = GetStdHandle(STD_OUTPUT_HANDLE);
 	SetConsoleTextAttribute(cursor, x);
 }
 

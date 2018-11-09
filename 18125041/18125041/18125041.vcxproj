@@ -116,16 +116,16 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="background.cpp" />
+    <ClCompile Include="game.cpp" />
     <ClCompile Include="main.cpp" />
-    <ClCompile Include="menu.cpp" />
-    <ClCompile Include="play.cpp" />
+    <ClCompile Include="player.cpp" />
     <ClCompile Include="stuff.cpp" />
     <ClCompile Include="welcome.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="background.h" />
-    <ClInclude Include="menu.h" />
-    <ClInclude Include="play.h" />
+    <ClInclude Include="game.h" />
+    <ClInclude Include="player.h" />
     <ClInclude Include="stuff.h" />
     <ClInclude Include="welcome.h" />
   </ItemGroup>
