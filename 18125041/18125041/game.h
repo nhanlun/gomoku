@@ -10,9 +10,9 @@
 class Game
 {
 	private:
-		const int dd[4] = { 1,1,0,1 }, cc[4] = { 0,1,1,-1 };
+		const int dd[4] = { 1,1,0,1 }, cc[4] = { 0,1,1,-1 }, ddd[8] = { 1,1,0,-1,-1,-1,0,1 }, ccc[8] = { 0,-1,-1,-1,0,1,1,1 };
 		Player player;
-		vector<vector<char> > chosen; vector<pair<int, int> > moveList;
+		vector<vector<char> > chosen; vector<pair<int, int> > moveList, threat; vector<vector<bool>> canBeThreat;
 		int curX, curY, pos1, pos2, m, n, turn, moveLeft;
 		bool End, WIN;
 		void init();
@@ -29,7 +29,7 @@ class Game
 		void Easy();
 		void Medium();
 		void Hard();
-		bool isnear(int x, int y);
+		int isnear(int x, int y);
 		void human(int x);
 		long long evaluation();
 		long long minimax(int depth, bool maxNode, long long alpha, long long beta, int x, int y);

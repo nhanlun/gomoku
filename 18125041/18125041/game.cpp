@@ -4,13 +4,18 @@
 #include "game.h"
 #include "welcome.h"
 
+//#define DEBUG
+
 void Game::run()
 {
 	player.backGround.initbackground(45, 135, 55);
 	player.loadData();
 	player.backGround.background(1, 45, 135, 11, 32, 33, 101);
 
+#ifndef DEBUG
 	welcome(); //splash screen + about screen
+#endif // !DEBUG
+
 	int action = 0;
 	HANDLE inp = GetStdHandle(STD_INPUT_HANDLE);
 
@@ -123,6 +128,18 @@ void Game::Move(char move, int com)
 					setcolor(9); cout << player.computerSymbol; chosen[tmp1][tmp2] = 'O';
 					gotoXY(43, 64); setcolor(12); cout << player.playerSymbol << "'s turn";
 				}
+				for (int i = 0; i < 8; ++i)
+				{
+					int u = tmp1 + ddd[i], v = tmp2 + ccc[i];
+					if (u >= 0 && u < player.m && v >= 0 && v < player.n)
+					{
+						if (chosen[u][v] == '.' && !canBeThreat[u][v])
+						{
+							canBeThreat[u][v] = true;
+							threat.push_back(make_pair(u, v));
+						}
+					}
+				}
 				--moveLeft;
 				if (check())
 				{
@@ -230,7 +247,9 @@ void Game::Move(char move, int com)
 
 void Game::init()
 {
-	while (!chosen.empty()) chosen.pop_back();
+	chosen.clear();
+	threat.clear();
+	canBeThreat.clear();
 
 	End = WIN = false;
 	m = player.m * 2 + 1, n = player.n * 4 + 1;
@@ -239,7 +258,13 @@ void Game::init()
 
 	vector<char> axax;
 	axax.resize(player.n, '.');
-	for (int i = 1; i <= player.m; i++)	chosen.push_back(axax);
+	vector<bool> ax;
+	ax.resize(player.n, 0);
+	for (int i = 1; i <= player.m; i++)
+	{
+		chosen.push_back(axax);
+		canBeThreat.push_back(ax);
+	}
 	moveLeft = player.m*player.n;
 }
 
@@ -363,27 +388,28 @@ void Game::human(int x)
 	else Move(move, x);
 }
 
-bool Game::isnear(int x, int y)
+int Game::isnear(int x, int y)
 {
+	int cnt = 0;
 	for (int i = x - 1; i <= x + 1; ++i)
 	{
 		if (i < 0 || i >= player.m) continue;
 		for (int j = y - 1; j <= y + 1; ++j)
 		{
 			if (j < 0 || j >= player.n) continue;
-			if (chosen[i][j] != '.') return true;
+			if (chosen[i][j] == 'X') cnt++;
 		}
 	}
-	return false;
+	return cnt;
 }
 
 long long Game::evaluation()
 {
-	int patern[2][6];
+	int patern[2][7];
 	//computerPatern = 1, playerPatern = 0   
-	//5: 5 chosen in a row, 4: 4 chosen in a row, 3: 3 chosen 2 open, 2: 3 chosen 1 open, 1: 2 chosen 2 open
+	//6: 4 chosen 2 open, 5: 5 chosen in a row, 4: 4 chosen in a row, 3: 3 chosen 2 open, 2: 3 chosen 1 open, 1: 2 chosen 2 open
 	long long score = 0;
-	for (int i = 0; i < 6; ++i) patern[0][i] = patern[1][i] = 0;
+	for (int i = 0; i < 7; ++i) patern[0][i] = patern[1][i] = 0;
 
 	for (int i = 0; i < player.m; ++i) for (int j = 0; j < player.n; ++j)
 	{
@@ -408,8 +434,8 @@ long long Game::evaluation()
 				}
 				case 4:
 				{
-					if ((j - l >= 0 && chosen[i][j - l] == '.') || (j + r < player.n && chosen[i][j + r] == '.')) patern[cur][4]++; //if open on any side
-					if ((j - l >= 0 && chosen[i][j - l] == '.') && (j + r < player.n && chosen[i][j + r] == '.')) patern[cur][5]++;
+					if ((j - l >= 0 && chosen[i][j - l] == '.') || (j + r < player.n && chosen[i][j + r] == '.')) patern[cur][4] += 3; //if open on any side
+					if ((j - l >= 0 && chosen[i][j - l] == '.') && (j + r < player.n && chosen[i][j + r] == '.')) patern[cur][6]++;
 					break;
 				}
 				case 3:
@@ -449,8 +475,8 @@ long long Game::evaluation()
 				}
 				case 4:
 				{
-					if ((i - l >= 0 && chosen[i - l][j] == '.') || (i + r < player.m && chosen[i + r][j] == '.')) patern[cur][4]++; //if open on any side
-					if ((i - l >= 0 && chosen[i - l][j] == '.') && (i + r < player.m && chosen[i + r][j] == '.')) patern[cur][5]++;
+					if ((i - l >= 0 && chosen[i - l][j] == '.') || (i + r < player.m && chosen[i + r][j] == '.')) patern[cur][4] += 3; //if open on any side
+					if ((i - l >= 0 && chosen[i - l][j] == '.') && (i + r < player.m && chosen[i + r][j] == '.')) patern[cur][6]++;
 					break;
 				}
 				case 3:
@@ -490,8 +516,8 @@ long long Game::evaluation()
 				}
 				case 4:
 				{
-					if ((i - l >= 0 && j - l >= 0 && chosen[i - l][j - l] == '.') || (i + r < player.m && j + r < player.n && chosen[i + r][j + r] == '.')) patern[cur][4]++; //if open on any side
-					if ((i - l >= 0 && j - l >= 0 && chosen[i - l][j - l] == '.') && (i + r < player.m && j + r < player.n && chosen[i + r][j + r] == '.')) patern[cur][5]++;
+					if ((i - l >= 0 && j - l >= 0 && chosen[i - l][j - l] == '.') || (i + r < player.m && j + r < player.n && chosen[i + r][j + r] == '.')) patern[cur][4] += 3; //if open on any side
+					if ((i - l >= 0 && j - l >= 0 && chosen[i - l][j - l] == '.') && (i + r < player.m && j + r < player.n && chosen[i + r][j + r] == '.')) patern[cur][6]++;
 					break;
 				}
 				case 3:
@@ -531,8 +557,8 @@ long long Game::evaluation()
 				}
 				case 4:
 				{
-					if ((i - l >= 0 && j + l < player.n && chosen[i - l][j + l] == '.') || (i + r < player.m && j - r > -1 && chosen[i + r][j - r] == '.')) patern[cur][4]++; //if open on any side
-					if ((i - l >= 0 && j + l < player.n && chosen[i - l][j + l] == '.') && (i + r < player.m && j - r > -1 && chosen[i + r][j - r] == '.')) patern[cur][5]++;
+					if ((i - l >= 0 && j + l < player.n && chosen[i - l][j + l] == '.') || (i + r < player.m && j - r > -1 && chosen[i + r][j - r] == '.')) patern[cur][4] += 3; //if open on any side
+					if ((i - l >= 0 && j + l < player.n && chosen[i - l][j + l] == '.') && (i + r < player.m && j - r > -1 && chosen[i + r][j - r] == '.')) patern[cur][6]++;
 					break;
 				}
 				case 3:
@@ -557,12 +583,13 @@ long long Game::evaluation()
 		}
 	}
 	//evaluate the state
+	if (patern[0][5] > 0 || patern[0][6] > 0) return -1000000000000000000LL;
 	if (patern[1][5] > 0) return 1000000000000000000LL;
-	if (patern[0][5] > 0) return -1000000000000000000LL;
 	score += 1LL * patern[1][1] - 1LL * patern[0][1] * 5;
 	score += 1LL * patern[1][2] * 100 - 1LL * patern[0][2] * 1000;
 	score += 1LL * patern[1][3] * 5000 - 1LL * patern[0][3] * 500000;
 	score += 1LL * patern[1][4] * 40000 - 1LL * patern[0][4] * 500000;
+	score += 1LL * patern[1][6] * 5000000000;
 	return score;
 }
 
@@ -571,13 +598,13 @@ long long Game::minimax(int depth, bool maxNode, long long alpha, long long beta
 	if (maxNode) chosen[x][y] = 'X';
 	else chosen[x][y] = 'O';
 
-	if (check()) //if someone wins
+	if (depth==1 && check()) //if someone wins
 	{
 		chosen[x][y] = '.';
 		if (maxNode) return -1000000000000000000LL;
 		else return 1000000000000000000LL;
 	}
-	else if (moveLeft == 0) //if draw
+	if (moveLeft == 0) //if draw
 	{
 		chosen[x][y] = '.';
 		return 0;
@@ -595,43 +622,53 @@ long long Game::minimax(int depth, bool maxNode, long long alpha, long long beta
 	if (maxNode)
 	{
 		val = -1000000000000000000LL;
-		for (int i = 0; i < chosen.size(); ++i)
+		for (int i = 0; i < threat.size(); ++i)
 		{
-			for (int j = 0; j < chosen[i].size(); ++j)
-			{
-				if (chosen[i][j] == '.' && isnear(i, j))
-				{
-					long long tmp = minimax(depth - 1, 0, alpha, beta, i, j);
-					val = max(val, tmp);
-					alpha = max(alpha, val);
-					if (alpha >= beta)
-					{
-						i = chosen.size() - 1;
-						j = chosen[i].size() - 1;
-					}
-				}
-			}
+			int u = threat[i].first, v = threat[i].second;
+			vector<pair<int, int>> thisTerm;
+			if (chosen[u][v] != '.') continue;
+
+			long long tmp = minimax(depth - 1, 0, alpha, beta, u, v);
+			val = max(val, tmp);
+			alpha = max(alpha, val);
+
+			if (alpha >= beta) break;
 		}
 	}
 	else
 	{
 		val = 1000000000000000000LL;
-		for (int i = 0; i < chosen.size(); ++i)
+		for (int i = 0; i < threat.size(); ++i)
 		{
-			for (int j = 0; j < chosen[i].size(); ++j)
+			int u = threat[i].first, v = threat[i].second;
+			vector<pair<int, int>> thisTerm;
+			if (chosen[u][v] != '.') continue;
+
+			for (int k = 0; k < 8; ++k)
 			{
-				if (chosen[i][j] == '.' && isnear(i, j))
+				int u1 = u + ddd[k], v1 = v + ccc[k];
+				if (u1<0 || u1>player.m || v1<0 || v1>player.n) continue;
+				if (!canBeThreat[u1][v1])
 				{
-					long long tmp = minimax(depth - 1, 1, alpha, beta, i, j);
-					val = min(val, tmp);
-					beta = min(beta, val);
-					if (alpha >= beta)
-					{
-						i = chosen.size() - 1;
-						j = chosen[i].size() - 1;
-					}
+					thisTerm.push_back(make_pair(u1, v1));
+					canBeThreat[u1][v1] = true;
+					threat.push_back(make_pair(u1, v1));
 				}
 			}
+
+			long long tmp = minimax(depth - 1, 1, alpha, beta, u, v);
+			val = min(val, tmp);
+			beta = min(beta, val);
+
+			for (int k = (int)thisTerm.size()-1; k >= 0; --k)
+			{
+				int u1 = thisTerm[k].first, v1 = thisTerm[k].second;
+				canBeThreat[u1][v1] = false;
+				threat.pop_back();
+			}
+			thisTerm.clear();
+
+			if (alpha >= beta) break;
 		}
 	}
 	chosen[x][y] = '.';
@@ -640,30 +677,73 @@ long long Game::minimax(int depth, bool maxNode, long long alpha, long long beta
 
 void Game::Easy()
 {
+	int Max = 0, x = 0, y = 0; bool found = false;
 	for (int i = 0; i < player.m; ++i) for (int j = 0; j < player.n; ++j)
 	{
 		if (chosen[i][j] == '.')
 		{
-			curX = i * 2 + pos1 + 1, curY = j * 4 + pos2 + 2;
-			gotoXY(curX, curY);
-			Move(' ', 1);
-			i = 1e8; j = 1e8;
+			int tmp = isnear(i, j);
+			if (tmp > Max)
+			{
+				Max = tmp;
+				x = i; y = j;
+				found = true;
+			}
 		}
 	}
+	if (!found) for (int i = 0; i < player.m; ++i) for (int j = 0; j < player.n; ++j) if (chosen[i][j] == '.')
+	{
+		x = i; y = j;
+		i = j = 1e8;
+	}
+	curX = x * 2 + pos1 + 1, curY = y * 4 + pos2 + 2;
+	gotoXY(curX, curY);
+	Move(' ', 1);
 }
 
 void Game::Medium()
 {
-	long long tmp = -1000000000000000000LL - 5;
+	long long tmp = -1000000000000000000LL - 5LL;
 	int x = 0, y = 0;
-	for (int i = 0; i < player.m; ++i) for (int j = 0; j < player.n; ++j) if (chosen[i][j] == '.' && isnear(i, j)) //chose a cell to make a move
+	for (int i = 0; i < threat.size(); ++i)
 	{
-		long long tmpVal = minimax(0, 0, -1000000000000000000LL, 1000000000000000000LL, i, j);
+		if (i >= threat.size()) break;
+		int u = threat[i].first, v = threat[i].second;
+
+		if (chosen[u][v] != '.')
+		{
+			swap(threat[i], threat.back());
+			threat.pop_back();
+			--i;
+			continue;
+		}
+		vector<pair<int, int>> thisTerm;
+		for (int k = 0; k < 8; ++k)
+		{
+			int u1 = u + ddd[k], v1 = v + ccc[k];
+			if (u1<0 || u1>player.m || v1<0 || v1>player.n) continue;
+			if (!canBeThreat[u1][v1])
+			{
+				thisTerm.push_back(make_pair(u1, v1));
+				canBeThreat[u1][v1] = true;
+				threat.push_back(make_pair(u1, v1));
+			}
+		}
+
+		long long tmpVal = minimax(0, 0, -1000000000000000000LL, 1000000000000000000LL, u, v);
 		if (tmpVal > tmp)
 		{
 			tmp = tmpVal;
-			x = i; y = j;
+			x = u; y = v;
 		}
+
+		for (int k = (int)thisTerm.size()-1; k >= 0; --k)
+		{
+			int u1 = thisTerm[k].first, v1 = thisTerm[k].second;
+			canBeThreat[u1][v1] = false;
+			threat.pop_back();
+		}
+		thisTerm.clear();
 	}
 	curX = x * 2 + pos1 + 1; curY = y * 4 + pos2 + 2;
 	gotoXY(curX, curY);
@@ -675,16 +755,47 @@ void Game::Hard()
 #ifdef DEBUG
 	double startTime = clock();
 #endif // DEBUG
-	long long tmp = -1000000000000000000LL - 5;
+	long long tmp = -1000000000000000000LL - 5LL;
 	int x = 0, y = 0;
-	for (int i = 0; i < player.m; ++i) for (int j = 0; j < player.n; ++j) if (chosen[i][j] == '.' && isnear(i, j)) //chose a cell to make a move
+	for (int i = 0; i < threat.size(); ++i)
 	{
-		long long tmpVal = minimax(1, 0, -1000000000000000000LL, 1000000000000000000LL, i, j);
+		if (i >= threat.size()) break;
+		int u = threat[i].first, v = threat[i].second;
+		vector<pair<int, int>> thisTerm;
+
+		if (chosen[u][v] != '.')
+		{
+			swap(threat[i], threat.back());
+			threat.pop_back();
+			--i;
+			continue;
+		}
+		for (int k = 0; k < 8; ++k)
+		{
+			int u1 = u + ddd[k], v1 = v + ccc[k];
+			if (u1<0 || u1>player.m || v1<0 || v1>player.n) continue;
+			if (!canBeThreat[u1][v1])
+			{
+				thisTerm.push_back(make_pair(u1, v1));
+				canBeThreat[u1][v1] = true;
+				threat.push_back(make_pair(u1, v1));
+			}
+		}
+
+		long long tmpVal = minimax(1, 0, -1000000000000000000LL, 1000000000000000000LL, u, v);
 		if (tmpVal > tmp)
 		{
 			tmp = tmpVal;
-			x = i; y = j;
+			x = u; y = v;
 		}
+
+		for (int k = (int)thisTerm.size() - 1; k >= 0; --k)
+		{
+			int u1 = thisTerm[k].first, v1 = thisTerm[k].second;
+			canBeThreat[u1][v1] = false;
+			threat.pop_back();
+		}
+		thisTerm.clear();
 	}
 	curX = x * 2 + pos1 + 1; curY = y * 4 + pos2 + 2;
 	gotoXY(curX, curY);
