@@ -342,6 +342,11 @@ void Game::savegame(int com)
 			for (int j = 0; j < chosen[i].size(); ++j) ou << chosen[i][j];
 			ou << '\n';
 		}
+		for (int i = 0; i < chosen.size(); ++i)
+		{
+			for (int j = 0; j < chosen[i].size(); ++j) ou << canBeThreat[i][j] << ' ';
+			ou << '\n';
+		}
 		ou.close();
 	}
 }
@@ -355,6 +360,13 @@ void Game::load(std::string s, int &gameMode)
 	{
 		fi >> chosen[i][j];
 		if (chosen[i][j] != '.') moveLeft--;
+	}
+	for (int i = 0; i < player.m; ++i) for (int j = 0; j < player.n; ++j)
+	{
+		int x;
+		fi >> x;
+		canBeThreat[i][j] = x;
+		if (canBeThreat[i][j] && chosen[i][j] == '.') threat.push_back(make_pair(i, j));
 	}
 	fi.close();
 }
