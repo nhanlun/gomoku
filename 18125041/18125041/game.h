@@ -31,8 +31,8 @@ class Game
 		void Hard();
 		int isnear(int x, int y);
 		void human(int x);
-		long long evaluation();
-		long long minimax(int depth, bool maxNode, long long alpha, long long beta, int x, int y);
+		long long evaluation(int nextMove);
+		long long minimax(int depth, bool maxNode, long long alpha, long long beta, int x, int y,int nextMove);
 	public:
 		void run();
 };

@@ -415,7 +415,7 @@ int Game::isnear(int x, int y)
 	return cnt;
 }
 
-long long Game::evaluation()
+long long Game::evaluation(int nextMove)
 {
 	int patern[2][7];
 	//computerPatern = 1, playerPatern = 0   
@@ -595,17 +595,19 @@ long long Game::evaluation()
 		}
 	}
 	//evaluate the state
-	if (patern[0][5] > 0 || patern[0][6] > 0) return -1000000000000000000LL;
+	if (patern[0][5] > 0) return -1000000000000000000LL;
 	if (patern[1][5] > 0) return 1000000000000000000LL;
+	if (patern[0][6] > 0) if (!nextMove) return -1000000000000000000LL;
+	if (patern[1][6] > 0) if (nextMove) return 1000000000000000000LL;
 	score += 1LL * patern[1][1] - 1LL * patern[0][1] * 5;
 	score += 1LL * patern[1][2] * 100 - 1LL * patern[0][2] * 1000;
 	score += 1LL * patern[1][3] * 5000 - 1LL * patern[0][3] * 500000;
 	score += 1LL * patern[1][4] * 40000 - 1LL * patern[0][4] * 500000;
-	score += 1LL * patern[1][6] * 5000000000;
+	score += 1LL * patern[1][6] * 5000000000 - 1LL * patern[0][6] * 50000000000;
 	return score;
 }
 
-long long Game::minimax(int depth, bool maxNode, long long alpha, long long beta, int x, int y) //alpha beta pruning
+long long Game::minimax(int depth, bool maxNode, long long alpha, long long beta, int x, int y,int nextMove) //alpha beta pruning
 {
 	if (maxNode) chosen[x][y] = 'X';
 	else chosen[x][y] = 'O';
@@ -625,7 +627,7 @@ long long Game::minimax(int depth, bool maxNode, long long alpha, long long beta
 	if (depth == 0) //evaluate 
 	{
 		long long eval = 0;
-		eval = evaluation();
+		eval = evaluation(nextMove);
 		chosen[x][y] = '.';
 		return eval;
 	}
@@ -640,7 +642,7 @@ long long Game::minimax(int depth, bool maxNode, long long alpha, long long beta
 			vector<pair<int, int>> thisTerm;
 			if (chosen[u][v] != '.') continue;
 
-			long long tmp = minimax(depth - 1, 0, alpha, beta, u, v);
+			long long tmp = minimax(depth - 1, 0, alpha, beta, u, v,nextMove);
 			val = max(val, tmp);
 			alpha = max(alpha, val);
 
@@ -668,7 +670,7 @@ long long Game::minimax(int depth, bool maxNode, long long alpha, long long beta
 				}
 			}
 
-			long long tmp = minimax(depth - 1, 1, alpha, beta, u, v);
+			long long tmp = minimax(depth - 1, 1, alpha, beta, u, v,nextMove);
 			val = min(val, tmp);
 			beta = min(beta, val);
 
@@ -730,32 +732,13 @@ void Game::Medium()
 			continue;
 		}
 		vector<pair<int, int>> thisTerm;
-		for (int k = 0; k < 8; ++k)
-		{
-			int u1 = u + ddd[k], v1 = v + ccc[k];
-			if (u1<0 || u1>player.m || v1<0 || v1>player.n) continue;
-			if (!canBeThreat[u1][v1])
-			{
-				thisTerm.push_back(make_pair(u1, v1));
-				canBeThreat[u1][v1] = true;
-				threat.push_back(make_pair(u1, v1));
-			}
-		}
 
-		long long tmpVal = minimax(0, 0, -1000000000000000000LL, 1000000000000000000LL, u, v);
+		long long tmpVal = minimax(0, 0, -1000000000000000000LL, 1000000000000000000LL, u, v, 0);
 		if (tmpVal > tmp)
 		{
 			tmp = tmpVal;
 			x = u; y = v;
 		}
-
-		for (int k = (int)thisTerm.size()-1; k >= 0; --k)
-		{
-			int u1 = thisTerm[k].first, v1 = thisTerm[k].second;
-			canBeThreat[u1][v1] = false;
-			threat.pop_back();
-		}
-		thisTerm.clear();
 	}
 	curX = x * 2 + pos1 + 1; curY = y * 4 + pos2 + 2;
 	gotoXY(curX, curY);
@@ -794,7 +777,7 @@ void Game::Hard()
 			}
 		}
 
-		long long tmpVal = minimax(1, 0, -1000000000000000000LL, 1000000000000000000LL, u, v);
+		long long tmpVal = minimax(1, 0, -1000000000000000000LL, 1000000000000000000LL, u, v, 1);
 		if (tmpVal > tmp)
 		{
 			tmp = tmpVal;
