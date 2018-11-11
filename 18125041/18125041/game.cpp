@@ -356,6 +356,7 @@ void Game::load(std::string s, int &gameMode)
 	ifstream fi(s);
 	fi >> gameMode >> player.m >> player.n;
 	fi >> turn;
+	init();
 	for (int i = 0; i < player.m; ++i) for (int j = 0; j < player.n; ++j)
 	{
 		fi >> chosen[i][j];
