@@ -661,7 +661,7 @@ long long Game::minimax(int depth, bool maxNode, long long alpha, long long beta
 			for (int k = 0; k < 8; ++k)
 			{
 				int u1 = u + ddd[k], v1 = v + ccc[k];
-				if (u1<0 || u1>player.m || v1<0 || v1>player.n) continue;
+				if (u1<0 || u1>=player.m || v1<0 || v1>=player.n) continue;
 				if (!canBeThreat[u1][v1])
 				{
 					thisTerm.push_back(make_pair(u1, v1));
@@ -768,7 +768,7 @@ void Game::Hard()
 		for (int k = 0; k < 8; ++k)
 		{
 			int u1 = u + ddd[k], v1 = v + ccc[k];
-			if (u1<0 || u1>player.m || v1<0 || v1>player.n) continue;
+			if (u1<0 || u1>=player.m || v1<0 || v1>=player.n) continue;
 			if (!canBeThreat[u1][v1])
 			{
 				thisTerm.push_back(make_pair(u1, v1));
